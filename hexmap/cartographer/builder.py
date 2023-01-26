@@ -1,8 +1,8 @@
 import random
-from mapgenerator.math import hexgrid
-from mapgenerator.features import terrain
-from mapgenerator.math.hexgrid import Hex
-from mapgenerator.features.terrain import Terrain
+from hexmap.math import hexgrid
+from hexmap.features import terrain
+from hexmap.math.hexgrid import Hex
+from hexmap.features.terrain import Terrain
 
 
 class Grid:

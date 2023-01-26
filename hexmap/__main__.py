@@ -1,4 +1,4 @@
-from mapgenerator import app
+from hexmap import app
 
 if __name__ == '__main__':
     app.run()

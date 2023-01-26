@@ -1,8 +1,8 @@
 import argparse
 import random
-from mapgenerator.cartographer import builder
-from mapgenerator.math import hexgrid
-from mapgenerator.features import terrain
+from hexmap.cartographer import builder
+from hexmap.math import hexgrid
+from hexmap.features import terrain
 
 VERSION = '0.0.1'
 
@@ -34,7 +34,7 @@ def place_town_in_random_position(positions):
 
 def complete_map(positions, grid):
     while not grid.is_complete():
-        builder.set_terrain_for_tile(None, positions, None)
+        builder.set_terrain_for_location(None, positions, None)
 
 
 def run():
