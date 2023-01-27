@@ -1,5 +1,4 @@
 import random
-
 from hexmap.cartographer.location import Location
 from hexmap.math import hexgrid
 from hexmap.math.hexgrid import Hex
@@ -48,11 +47,43 @@ def create_rectangle_hexmap(height, width, terrain_options):
     :param int height: The position to place the terrain
     :param int width: The map of Hex positions to Locations
     :param list[Terrain] terrain_options: The possible Terrain Types
+    :return: Hex Positions to Locations
+    :rtype: dict[Hex, Location]
     """
     # Dicts are ordered, so we can turn a list of positions into a dict of
     # position to location, and know that the order will be maintained for printing later
-    positions = hexgrid.build_rectangle_of_size(height, width)
-    return {position: Location(terrain_options) for position in positions}
+    return {position: Location(terrain_options) for position in hexgrid.build_rectangle_of_size(height, width)}
+
+
+def get_neighbours(position, positions):
+    """
+    Get the valid neighbour positions of the specified position
+    :param position: The position to get the neighbours for
+    :param positions: The map of positions to get the neighbours from
+    :return: The neighbours of the specified position
+    :rtype: list[Hex]
+    """
+    return [neighbour for neighbour in hexgrid.hex_neighbors(position) if neighbour in positions]
+
+
+def update_positions(positions_to_update, positions):
+    """
+    Updates the specified positions
+    :param positions_to_update: The positions to be updated
+    :param positions: The whole collection of positions
+    :return:
+    """
+    for position in positions_to_update:
+        update_terrain_options_for_position(position, positions)
+
+
+def update_neighbours(position, positions):
+    """
+    Updates the locations of the position's neighbours
+    :param position: Position to get neighbours of
+    :param positions: Positions to get the neighbours from
+    """
+    update_positions(get_neighbours(position, positions), positions)
 
 
 def set_terrain_for_location(position, positions, terrain_option, update=True):
@@ -61,9 +92,6 @@ def set_terrain_for_location(position, positions, terrain_option, update=True):
     Won't place if the position is already determined
     If position is None then it will be determined randomly
     If terrain_option is None then it will be determined randomly from the position's options
-
-    Parameters
-    ----------
     :param position: The position to place the terrain
     :type position: Hex or None
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
@@ -82,34 +110,30 @@ def set_terrain_for_location(position, positions, terrain_option, update=True):
         return False
     location.determine_terrain_options(terrain_option)
     if update:
-        update_terrain_options_for_position(position, positions)
+        update_neighbours(position, positions)
     return True
 
 
 def update_terrain_options_for_position(position, positions):
     """
-
+    Updates the terrain options for the specified position, removes any options that the neighbours prevent
+    If the position is updated, updates neighbours
     :param Hex position: The position to place the terrain
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
-    :return:
     """
     changed = False
     location = positions[position]
-    if location.determined:
-        return changed
-    neighbours = [neighbour for neighbour in hexgrid.hex_neighbors(position) if neighbour in positions]
+    neighbours = get_neighbours(position, positions)
     for neighbour in neighbours:
-        changed = location.update_terrain_options(positions[neighbour])
+        if location.update_terrain_options(positions[neighbour]):
+            changed = True
     if changed:
-        for neighbour in neighbours:
-            update_terrain_options_for_position(neighbour, positions)
-    return changed
+        update_positions(neighbours, positions)
 
 
 def get_undetermined_positions(positions):
     """
     Gets all positions that do not have determined terrain
-
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
     :return: positions that do not have determined terrain
     :rtype: dict[Hex, Location]
@@ -120,7 +144,6 @@ def get_undetermined_positions(positions):
 def get_random_position_for_terrain(terrain_option, positions):
     """
     Gets random position that could have the terrain option
-
     :param Terrain terrain_option: The terrain option to find a position for
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
     :return: position that could be specified terrain
@@ -163,9 +186,6 @@ def place_terrain_staggered_wall_shape(terrain_option, positions, steps,
     Places terrain in a line.
     Has a chance to take a step perpendicularly and start a new line, each step reduces the chance.
     Has a chance to change direction when starting a new line.
-
-    Parameters
-    ----------
     :param Terrain terrain_option: The Terrain Type to set
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
     :param int steps: Steps to take for each line
