@@ -82,40 +82,28 @@ def set_terrain_for_location(position, positions, terrain_option, update=True):
         return False
     location.determine_terrain_options(terrain_option)
     if update:
-        determine_terrain_options_for_grid(positions)
+        update_terrain_options_for_position(position, positions)
     return True
 
 
-def update_terrain_options_for_grid(positions):
+def update_terrain_options_for_position(position, positions):
     """
-    Updates all terrain_options for locations in grid, based in neighbouring terrain
 
-    Parameters
-    ----------
+    :param Hex position: The position to place the terrain
     :param dict[Hex, Location] positions: The map of Hex positions to Locations
-    :return: True iff any position's terrain was updated
+    :return:
     """
     changed = False
-    for current in positions:
-        for neighbour in hexgrid.hex_neighbors(current):
-            if neighbour in positions:
-                changed = positions[current].update_terrain_options(positions[neighbour])
+    location = positions[position]
+    if location.determined:
+        return changed
+    neighbours = [neighbour for neighbour in hexgrid.hex_neighbors(position) if neighbour in positions]
+    for neighbour in neighbours:
+        changed = location.update_terrain_options(positions[neighbour])
+    if changed:
+        for neighbour in neighbours:
+            update_terrain_options_for_position(neighbour, positions)
     return changed
-
-
-def determine_terrain_options_for_grid(positions):
-    """
-    Updates all terrain_options for locations in grid, based in neighbouring terrain
-    Will update again if any location was updated
-    Will stop when no more updates can be made
-
-    Parameters
-    ----------
-    :param dict[Hex, Location] positions: The map of Hex positions to Locations
-    """
-    updating = True
-    while updating:
-        updating = update_terrain_options_for_grid(positions)
 
 
 def get_undetermined_positions(positions):
@@ -167,7 +155,6 @@ def place_terrain_hex_shape(terrain_option, positions, radius, center=None):
         center = get_random_position_for_terrain(terrain_option, positions)
     for position in hexgrid.get_all_hexes_within_range(center, radius):
         set_terrain_for_location(position, positions, terrain_option, False)
-    determine_terrain_options_for_grid(positions)
 
 
 def place_terrain_staggered_wall_shape(terrain_option, positions, steps,
@@ -218,4 +205,3 @@ def place_terrain_staggered_wall_shape(terrain_option, positions, steps,
             new_start = hexgrid.hex_neighbor(current_position, (direction + random.choice([1, 2, 4, 5])) % 6)
             place_terrain_staggered_wall_shape(terrain_option, positions, steps, new_direction, spawn_chance,
                                                turn_chance, new_start)
-    determine_terrain_options_for_grid(positions)
