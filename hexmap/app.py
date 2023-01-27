@@ -1,4 +1,5 @@
 import argparse
+import pickle
 import random
 from hexmap.cartographer import builder
 from hexmap.math import hexgrid
@@ -15,6 +16,12 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-v", "--version", action="version",
         version=f"{parser.prog} version {VERSION}"
+    )
+    parser.add_argument(
+        '-s', '--save', action='store', type=str, nargs=1
+    )
+    parser.add_argument(
+        '-l', '--load', action='store', type=str, nargs=1
     )
     # parser.add_argument(
     #     'config',
@@ -37,14 +44,12 @@ def complete_map(positions, grid):
         builder.set_terrain_for_location(None, positions, None)
 
 
-def run():
-    # args = init_argparse().parse_args()
-
+def generate_map():
     seed = None
     if seed:
         random.seed(seed)
-    height = 23
-    width = 17
+    height = 10
+    width = 10
     town_count = 5
     lake_count = 2
     positions = builder.create_rectangle_hexmap(height, width, terrain.get_default_terrain())
@@ -60,5 +65,20 @@ def run():
         place_lake_in_random_position(positions, 2)
 
     complete_map(positions, grid)
-    print(grid)
+    return grid
 
+
+def run():
+    args = init_argparse().parse_args()
+
+    if args.load:
+        with open(args.load[0], "rb") as infile:
+            grid = pickle.load(infile)
+            print(grid)
+    else:
+        grid = generate_map()
+        print(grid)
+
+    if args.save:
+        with open(args.save[0], "wb") as outfile:
+            pickle.dump(grid, outfile)
