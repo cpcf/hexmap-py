@@ -23,13 +23,13 @@ def init_argparse() -> argparse.ArgumentParser:
 
 
 def place_lake_in_random_position(positions, steps):
-    builder.place_terrain_hex_shape_randomly(terrain.default_terrain["water"],
-                                             positions,
-                                             steps)
+    builder.place_terrain_hex_shape(terrain.default_terrain["water"],
+                                    positions,
+                                    steps)
 
 
 def place_town_in_random_position(positions):
-    builder.place_terrain_in_random_valid_position(terrain.default_terrain["town"], positions)
+    builder.set_terrain_in_random_valid_position(terrain.default_terrain["town"], positions)
 
 
 def complete_map(positions, grid):
@@ -47,11 +47,11 @@ def run():
     width = 17
     town_count = 5
     lake_count = 2
-    positions = builder.create_positions(height, width, terrain.get_default_terrain())
+    positions = builder.create_rectangle_hexmap(height, width, terrain.get_default_terrain())
     grid = builder.Grid(positions, height, width)
 
     builder.place_terrain_staggered_wall_shape(terrain.default_terrain["mountains"], positions, 5,
-                                               hexgrid.directions["NE"], 0.5, 1, None)
+                                               hexgrid.directions["NE"], 0.5, 1)
 
     for _ in range(0, town_count):
         place_town_in_random_position(positions)

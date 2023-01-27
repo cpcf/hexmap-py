@@ -1,6 +1,7 @@
 import random
+
+from hexmap.cartographer.location import Location
 from hexmap.math import hexgrid
-from hexmap.features import terrain
 from hexmap.math.hexgrid import Hex
 from hexmap.features.terrain import Terrain
 
@@ -38,52 +39,7 @@ class Grid:
         return out
 
 
-class Location:
-    def __init__(self, terrain_options):
-        self.terrain_options = terrain_options
-        self.longest = len(max(terrain_options, key=len))
-        self.determined = len(self.terrain_options) == 1
-
-    def set_terrain(self, terrain_options):
-        """
-        Set the terrain options for this Location
-        :param list[Terrain] terrain_options: The Terrain Types to set for this Location
-        """
-        self.terrain_options = terrain_options
-        self.determined = len(self.terrain_options) == 1
-
-    def update_options(self, neighbour):
-        """
-        Update the possible terrain options based on the neighbour's options
-        :param Location neighbour: The neighbour to compare to
-        """
-        # If it's already determined, don't update it
-        if self.determined:
-            return False
-        old_options = self.terrain_options
-        new_options = []
-        for option in old_options:
-            possible = option.possible_neighbours
-            if terrain.valid_neighbour(possible, neighbour.terrain_options):
-                new_options.append(option)
-        self.set_terrain(new_options)
-        self.determined = len(self.terrain_options) == 1
-        return old_options != new_options
-
-    def __repr__(self):
-        if self.determined:
-            return f"({str(self.terrain_options[0]):^{self.longest}})"
-        else:
-            return f"({'?':^{self.longest}})"
-
-    def __str__(self):
-        if self.determined:
-            return f"({str(self.terrain_options[0]):^{self.longest}})"
-        else:
-            return f"({'?':^{self.longest}})"
-
-
-def create_positions(height, width, terrain_options):
+def create_rectangle_hexmap(height, width, terrain_options):
     """
     Creates a grid of Hex positions to Terrain objects with
     the possible terrains passed in by terrain_options
@@ -124,15 +80,13 @@ def set_terrain_for_location(position, positions, terrain_option, update=True):
     location = positions[position]
     if location.determined:
         return False
-    if terrain_option is None:
-        terrain_option = random.choice(positions[position].terrain_options)
-    location.set_terrain([terrain_option])
+    location.determin_terrain_options(terrain_option)
     if update:
-        update_grid_all(positions)
+        determine_terrain_options_for_grid(positions)
     return True
 
 
-def update_grid(positions):
+def update_terrain_options_for_grid(positions):
     """
     Updates all terrain_options for locations in grid, based in neighbouring terrain
 
@@ -145,11 +99,11 @@ def update_grid(positions):
     for current in positions:
         for neighbour in hexgrid.hex_neighbors(current):
             if neighbour in positions:
-                changed = positions[current].update_options(positions[neighbour])
+                changed = positions[current].update_terrain_options(positions[neighbour])
     return changed
 
 
-def update_grid_all(positions):
+def determine_terrain_options_for_grid(positions):
     """
     Updates all terrain_options for locations in grid, based in neighbouring terrain
     Will update again if any location was updated
@@ -161,7 +115,7 @@ def update_grid_all(positions):
     """
     updating = True
     while updating:
-        updating = update_grid(positions)
+        updating = update_terrain_options_for_grid(positions)
 
 
 def get_undetermined_positions(positions):
@@ -172,7 +126,7 @@ def get_undetermined_positions(positions):
     :return: positions that do not have determined terrain
     :rtype: dict[Hex, Location]
     """
-    return [loc for loc in positions if not positions[loc].determined]
+    return [position for position in positions if not positions[position].determined]
 
 
 def get_random_position_for_terrain(terrain_option, positions):
@@ -185,11 +139,11 @@ def get_random_position_for_terrain(terrain_option, positions):
     :rtype: Hex
     """
     undetermined = get_undetermined_positions(positions)
-    possible_positions = [loc for loc in undetermined if terrain_option in positions[loc].terrain_options]
-    return random.choice(possible_positions)
+    terrain_positions = [position for position in undetermined if terrain_option in positions[position].terrain_options]
+    return random.choice(terrain_positions)
 
 
-def place_terrain_in_random_valid_position(terrain_option, positions):
+def set_terrain_in_random_valid_position(terrain_option, positions):
     """
     Places the specified terrain in a random valid position
     :param Terrain terrain_option: The Terrain Type to set
@@ -198,7 +152,7 @@ def place_terrain_in_random_valid_position(terrain_option, positions):
     set_terrain_for_location(get_random_position_for_terrain(terrain_option, positions), positions, terrain_option)
 
 
-def place_terrain_hex_shape_randomly(terrain_option, positions, radius, center=None):
+def place_terrain_hex_shape(terrain_option, positions, radius, center=None):
     """
     Places a hex shaped pattern of terrain, starting at the specified center
     If no center is specified then a position will be chosen randomly
@@ -213,10 +167,11 @@ def place_terrain_hex_shape_randomly(terrain_option, positions, radius, center=N
         center = get_random_position_for_terrain(terrain_option, positions)
     for position in hexgrid.get_all_hexes_within_range(center, radius):
         set_terrain_for_location(position, positions, terrain_option, False)
-    update_grid_all(positions)
+    determine_terrain_options_for_grid(positions)
 
 
-def place_terrain_staggered_wall_shape(terrain_option, positions, steps, direction, spawn_chance, turn_chance, start):
+def place_terrain_staggered_wall_shape(terrain_option, positions, steps,
+                                       direction, spawn_chance, turn_chance, start=None):
     """
     Places terrain in a line.
     Has a chance to take a step perpendicularly and start a new line, each step reduces the chance.
@@ -263,4 +218,4 @@ def place_terrain_staggered_wall_shape(terrain_option, positions, steps, directi
             new_start = hexgrid.hex_neighbor(current_position, (direction + random.choice([1, 2, 4, 5])) % 6)
             place_terrain_staggered_wall_shape(terrain_option, positions, steps, new_direction, spawn_chance,
                                                turn_chance, new_start)
-    update_grid_all(positions)
+    determine_terrain_options_for_grid(positions)
