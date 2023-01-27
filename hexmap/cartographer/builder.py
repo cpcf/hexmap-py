@@ -80,7 +80,7 @@ def set_terrain_for_location(position, positions, terrain_option, update=True):
     location = positions[position]
     if location.determined:
         return False
-    location.determin_terrain_options(terrain_option)
+    location.determine_terrain_options(terrain_option)
     if update:
         determine_terrain_options_for_grid(positions)
     return True

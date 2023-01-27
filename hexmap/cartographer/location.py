@@ -21,7 +21,7 @@ class Location:
         else:
             return f"({'?':^{self.longest}})"
 
-    def determin_terrain_options(self, terrain_option):
+    def determine_terrain_options(self, terrain_option):
         """
         Sets the terrain_options to a single option
         If option specified is None, select the option from available options
