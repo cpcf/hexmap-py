@@ -133,3 +133,4 @@ dmypy.json
 
 # Custom
 .ignore_dir/
+*.map
