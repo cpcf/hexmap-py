@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import random
 from hexmap.cartographer.location import Location
 from hexmap.math import hexgrid
