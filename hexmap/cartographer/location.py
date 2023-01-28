@@ -17,7 +17,9 @@ class Location:
 
     def __str__(self):
         if self.determined:
-            return f"({str(self.terrain_options[0]):^{self.longest}})"
+            terrain_string = str(self.terrain_options[0])
+            size = self.longest + len(terrain_string) - len(self.terrain_options[0])
+            return f"({terrain_string:^{size}})"
         else:
             return f"({'?':^{self.longest}})"
 

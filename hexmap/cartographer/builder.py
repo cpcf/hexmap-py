@@ -5,12 +5,11 @@ from hexmap.math.hexgrid import Hex
 from hexmap.features.terrain import Terrain
 
 
+@dataclass()
 class Grid:
-    def __init__(self, grid, height, width):
-        self.grid = grid
-        self.height = height
-        self.width = width
-        self.count = height * width
+    grid: dict[Hex, Location]
+    height: int
+    width: int
 
     def is_complete(self):
         """

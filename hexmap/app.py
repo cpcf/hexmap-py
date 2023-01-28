@@ -48,8 +48,8 @@ def generate_map():
     seed = None
     if seed:
         random.seed(seed)
-    height = 10
-    width = 10
+    height = 20
+    width = 15
     town_count = 5
     lake_count = 2
     positions = builder.create_rectangle_hexmap(height, width, terrain.get_default_terrain())

@@ -1,7 +1,12 @@
+from dataclasses import dataclass
+from hexmap.cli.colors import Colors
+
+
+@dataclass()
 class Terrain:
-    def __init__(self, name, possible_neighbours):
-        self.name = name
-        self.possible_neighbours = possible_neighbours
+    name: str
+    possible_neighbours: list[str]
+    colour_code: str
 
     def __len__(self):
         return len(self.name)
@@ -10,10 +15,8 @@ class Terrain:
         return f"Terrain: {self.name}"
 
     def __str__(self):
-        return self.name
-
-    def __hash__(self):
-        return hash((self.name, tuple(self.possible_neighbours)))
+        return self.colour_code + self.name + Colors.END
+        # return self.name
 
     def __eq__(self, other):
         return (
@@ -24,11 +27,11 @@ class Terrain:
 
 
 default_terrain = {
-    "plains": Terrain("plains", ["plains", "mountains", "water", "valley", "town"]),
-    "mountains": Terrain("mountains", ["plains", "mountains"]),
-    "valley": Terrain("valley", ["plains", "valley"]),
-    "water": Terrain("water", ["plains", "water"]),
-    "town": Terrain("town", ["plains"]),
+    "plains": Terrain("plains", ["plains", "mountains", "water", "valley", "town"], Colors.GREEN),
+    "mountains": Terrain("mountains", ["plains", "mountains"], Colors.LIGHT_WHITE),
+    "valley": Terrain("valley", ["plains", "valley"], Colors.BROWN),
+    "water": Terrain("water", ["plains", "water"], Colors.LIGHT_BLUE),
+    "town": Terrain("town", ["plains"], Colors.PURPLE),
 }
 
 
