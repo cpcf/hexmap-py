@@ -1,12 +1,12 @@
-Requires Python version > 3.6
+Requires Python version > 3.9
 
 # Hexmap-py
 
 ## Simple Hexmap generator for TTRPG style maps
-Generates a simple hexmap and outputs it in plaintext.
-By default colourises the tiles for terminal outout.
+Generates a simple hexmap and outputs it in plain text.
+By default colourises the tiles for terminal output.
 
-Can save and load map in a binary format.
+Can save and load maps in a binary format.
 
 Usage:
 ```
